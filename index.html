@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Floating Particle Image with Video Background</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      width: 100vw;
+      background: #000;
+      overflow: hidden;
+    }
+
+    /* Video nền */
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    /* Text overlay */
+    #text-img {
+      position: absolute;
+      bottom: 5vh;
+      left: 84%;
+      transform: translateX(-50%);
+      width: 30vw;
+      max-width: 80%;
+      height: auto;
+      z-index: 2;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 10;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Video nền -->
+  <video id="bg-video" autoplay muted loop>
+    <source src="vid.mp4" type="video/mp4">
+  </video>
+
+  <!-- Text -->
+  <img id="text-img" src="text.png" alt="Design Text">
+
+  <!-- Canvas hiệu ứng -->
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let W, H;
+
+    const imagePath = "xuanhai.png";
+    const pixelSize = 2;
+    const particleRenderSize = 2;
+    const moveSpeed = 0.05;
+    const damping = 0.6;
+
+    const img = new Image();
+    img.src = imagePath;
+
+    function initializeEffect() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+      ctx.clearRect(0, 0, W, H);
+
+      const tempCanvas = document.createElement("canvas");
+      const tempCtx = tempCanvas.getContext("2d");
+
+      const imgRatio = img.width / img.height;
+      let drawWidth = W * 1.5; // scale ảnh ~50% width
+      let drawHeight = drawWidth / imgRatio;
+
+      if (drawHeight > H * 1.5) { // không cao quá 70% màn hình
+        drawHeight = H * 1.5;
+        drawWidth = drawHeight * imgRatio;
+      }
+
+      tempCanvas.width = drawWidth;
+      tempCanvas.height = drawHeight;
+
+      // căn giữa ảnh
+      const drawX = (W - drawWidth) / 2;
+      const drawY = (H - drawHeight) / 2+50;
+
+      tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+      const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height).data;
+
+      const particles = [];
+
+      for (let y = 0; y < tempCanvas.height; y += pixelSize) {
+        for (let x = 0; x < tempCanvas.width; x += pixelSize) {
+          const index = (y * tempCanvas.width + x) * 4;
+          const r = imageData[index];
+          const g = imageData[index + 1];
+          const b = imageData[index + 2];
+          const a = imageData[index + 3];
+
+          if (a > 50) {
+            particles.push({
+              x: Math.random() * W,
+              y: Math.random() * H,
+              vx: (Math.random() - 0.5) * 2,
+              vy: (Math.random() - 0.5) * 2,
+              targetX: x + drawX,
+              targetY: y + drawY,
+              size: particleRenderSize,
+              color: `rgba(${r}, ${g}, ${b}, ${a / 255})`,
+              floating: true
+            });
+          }
+        }
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, W, H);
+        let allDone = true;
+
+        for (let p of particles) {
+          if (p.floating) {
+            allDone = false;
+            p.vx += (Math.random() - 0.5) * 0.2;
+            p.vy += (Math.random() - 0.5) * 0.2;
+
+            const dx = p.targetX - p.x;
+            const dy = p.targetY - p.y;
+            p.vx += dx * moveSpeed;
+            p.vy += dy * moveSpeed;
+
+            p.vx *= damping;
+            p.vy *= damping;
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+              p.x = p.targetX;
+              p.y = p.targetY;
+              p.floating = false;
+            }
+          }
+
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x, p.y, p.size, p.size);
+        }
+
+        if (!allDone) {
+          requestAnimationFrame(animate);
+        } else {
+          ctx.clearRect(0, 0, W, H);
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        }
+      }
+
+      animate();
+    }
+
+    img.onload = initializeEffect;
+    window.addEventListener("resize", initializeEffect);
+  </script>
+</body>
+</html>
