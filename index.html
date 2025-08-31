@@ -15,6 +15,19 @@
       font-family: sans-serif;
     }
 
+    #bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('pic1.jpg'); 
+      background-size: cover;
+      background-position: center;
+      opacity: 0.2;
+      z-index: 0; 
+    }
+
     #bg-video {
       position: fixed;
       top: 0;
@@ -33,6 +46,7 @@
       max-width: 80%;
       height: auto;
       z-index: 2;
+      filter: drop-shadow(10px 10px 10px rgba(0, 0, 0, 0.7));
     }
 
     canvas {
@@ -47,19 +61,41 @@
 
     @media (max-width: 600px) {
       #text-img {
-        width: 40vw;
+        width: 50vw;
         bottom: 3%;
-        right: 5%;
+        right: 3%;
+      }
+
+      #bg-video {
+        width: 130%;     
+        height: 110%;    
+        top: -20px;      
+        left: -15%;       
+      }
+
+      #bg-overlay {
+        background-image: url('pic2.jpg');
+        opacity: 0.2;
+        background-size: cover; 
+        top: -5%;
+        left: -1%;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Background overlay -->
+  <div id="bg-overlay"></div>
+
+  <!-- Video nền -->
   <video id="bg-video" autoplay muted loop playsinline>
     <source src="vid.mp4" type="video/mp4">
   </video>
 
+  <!-- Text -->
   <img id="text-img" src="text.png" alt="Design Text">
+
+  <!-- Canvas particle -->
   <canvas id="canvas"></canvas>
 
   <script>
@@ -70,14 +106,6 @@
     const imagePath = "xuanhai.png";
     const pixelSize = 2;
     const particleRenderSize = 3;
-   let moveSpeed;
-if (W >= 500) {       
-  moveSpeed = 0.05;
-} else {               
-  moveSpeed = 0.08;    
-}
-    const damping = 0.6;
-
     const img = new Image();
     img.src = imagePath;
 
@@ -91,33 +119,39 @@ if (W >= 500) {
       const tempCanvas = document.createElement("canvas");
       const tempCtx = tempCanvas.getContext("2d");
 
-      const imgRatio = img.width / img.height;
-      let drawWidth, drawHeight;
+      let drawWidth, drawHeight, drawX, drawY, moveSpeed;
 
-      if (W >= 500) {  // Desktop
-        drawWidth = W * 2;  
-        drawHeight = drawWidth / imgRatio;
-      } else {          // Mobile
-        drawWidth = W * 0.8;  
-        drawHeight = drawWidth / imgRatio;
-      }
-
-      if (drawHeight > H * 1.5) {
-        drawHeight = H * 1.5;
-        drawWidth = drawHeight * imgRatio;
+      if (W >= 500) {
+        // --- DESKTOP ---
+        drawWidth = W * 2;
+        drawHeight = drawWidth / (img.width / img.height);
+        if (drawHeight > H * 1.5) {
+          drawHeight = H * 1.5;
+          drawWidth = drawHeight * (img.width / img.height);
+        }
+        drawX = (W - drawWidth) / 2;
+        drawY = (H - drawHeight) / 2 + 25; 
+        moveSpeed = 0.05;
+      } else {
+        // --- MOBILE ---
+        drawWidth = W * 1.5;
+        drawHeight = drawWidth / (img.width / img.height);
+        if (drawHeight > H * 1.5) {
+          drawHeight = H * 1.5;
+          drawWidth = drawHeight * (img.width / img.height);
+        }
+        drawX = (W - drawWidth) / 2;
+        drawY = H - drawHeight + 155; 
+        moveSpeed = 0.08; 
       }
 
       tempCanvas.width = drawWidth;
       tempCanvas.height = drawHeight;
 
-      const drawX = (W - drawWidth) / 2;
-      const drawY = (H - drawHeight)/2+ 25; 
-
       tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
       const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height).data;
 
       const particles = [];
-
       for (let y = 0; y < tempCanvas.height; y += pixelSize) {
         for (let x = 0; x < tempCanvas.width; x += pixelSize) {
           const index = (y * tempCanvas.width + x) * 4;
@@ -125,7 +159,6 @@ if (W >= 500) {
           const g = imageData[index + 1];
           const b = imageData[index + 2];
           const a = imageData[index + 3];
-
           if (a > 50) {
             particles.push({
               x: Math.random() * W,
@@ -145,7 +178,6 @@ if (W >= 500) {
       function animate() {
         ctx.clearRect(0, 0, W, H);
         let allDone = true;
-
         for (let p of particles) {
           if (p.floating) {
             allDone = false;
@@ -157,8 +189,8 @@ if (W >= 500) {
             p.vx += dx * moveSpeed;
             p.vy += dy * moveSpeed;
 
-            p.vx *= damping;
-            p.vy *= damping;
+            p.vx *= 0.6; 
+            p.vy *= 0.6;
             p.x += p.vx;
             p.y += p.vy;
 
@@ -168,7 +200,6 @@ if (W >= 500) {
               p.floating = false;
             }
           }
-
           ctx.fillStyle = p.color;
           ctx.fillRect(p.x, p.y, p.size, p.size);
         }
