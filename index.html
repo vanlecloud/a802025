@@ -2,34 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Floating Particle Image with Video Background</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      margin: 0;
-      height: 100vh;
       width: 100vw;
+      height: 100vh;
       background: #000;
       overflow: hidden;
+      font-family: sans-serif;
     }
 
-    /* Video nền */
     #bg-video {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       z-index: -1;
     }
 
-    /* Text overlay */
     #text-img {
       position: absolute;
-      bottom: 5vh;
-      left: 84%;
-      transform: translateX(-50%);
-      width: 30vw;
+      bottom: 5%;
+      right: 2%;
+      width: 25vw;
       max-width: 80%;
       height: auto;
       z-index: 2;
@@ -38,24 +38,28 @@
     canvas {
       position: fixed;
       top: 0;
-      left: 10;
-      width: 100vw;
-      height: 100vh;
+      left: 0;
+      width: 100%;
+      height: 100%;
       z-index: 1;
       display: block;
+    }
+
+    @media (max-width: 600px) {
+      #text-img {
+        width: 40vw;
+        bottom: 3%;
+        right: 5%;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Video nền -->
-  <video id="bg-video" autoplay muted loop>
+  <video id="bg-video" autoplay muted loop playsinline>
     <source src="vid.mp4" type="video/mp4">
   </video>
 
-  <!-- Text -->
   <img id="text-img" src="text.png" alt="Design Text">
-
-  <!-- Canvas hiệu ứng -->
   <canvas id="canvas"></canvas>
 
   <script>
@@ -65,8 +69,13 @@
 
     const imagePath = "xuanhai.png";
     const pixelSize = 2;
-    const particleRenderSize = 2;
-    const moveSpeed = 0.05;
+    const particleRenderSize = 3;
+   let moveSpeed;
+if (W >= 500) {       
+  moveSpeed = 0.05;
+} else {               
+  moveSpeed = 0.08;    
+}
     const damping = 0.6;
 
     const img = new Image();
@@ -83,10 +92,17 @@
       const tempCtx = tempCanvas.getContext("2d");
 
       const imgRatio = img.width / img.height;
-      let drawWidth = W * 1.5; // scale ảnh ~50% width
-      let drawHeight = drawWidth / imgRatio;
+      let drawWidth, drawHeight;
 
-      if (drawHeight > H * 1.5) { // không cao quá 70% màn hình
+      if (W >= 500) {  // Desktop
+        drawWidth = W * 2;  
+        drawHeight = drawWidth / imgRatio;
+      } else {          // Mobile
+        drawWidth = W * 0.8;  
+        drawHeight = drawWidth / imgRatio;
+      }
+
+      if (drawHeight > H * 1.5) {
         drawHeight = H * 1.5;
         drawWidth = drawHeight * imgRatio;
       }
@@ -94,9 +110,8 @@
       tempCanvas.width = drawWidth;
       tempCanvas.height = drawHeight;
 
-      // căn giữa ảnh
       const drawX = (W - drawWidth) / 2;
-      const drawY = (H - drawHeight) / 2+50;
+      const drawY = (H - drawHeight)/2+ 25; 
 
       tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
       const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height).data;
