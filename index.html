@@ -21,7 +21,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-image: url('pic1.jpg'); 
+      background-image: url('a80logo.png'); 
       background-size: cover;
       background-position: center;
       opacity: 0.2;
@@ -38,16 +38,23 @@
       z-index: -1;
     }
 
-    #text-img {
-      position: absolute;
-      bottom: 5%;
-      right: 2%;
-      width: 25vw;
-      max-width: 80%;
-      height: auto;
-      z-index: 2;
-      filter: drop-shadow(10px 10px 10px rgba(0, 0, 0, 0.7));
-    }
+    #text-container {
+  position: absolute;
+  bottom: 5%;      
+  right: 2%;        
+  display: flex;
+  flex-direction: column; 
+  align-items: flex-end; 
+  gap: 1px;       
+  z-index: 2;
+}
+
+    #text-img, #text-img2 {
+  width: 30vw;     
+  max-width: 80%;
+  height: auto;
+  filter: drop-shadow(10px 10px 10px rgba(0, 0, 0, 0.7));
+}
 
     canvas {
       position: fixed;
@@ -60,10 +67,8 @@
     }
 
     @media (max-width: 600px) {
-      #text-img {
+      #text-img, #text-img2 {
         width: 50vw;
-        bottom: 3%;
-        right: 3%;
       }
 
       #bg-video {
@@ -84,18 +89,19 @@
   </style>
 </head>
 <body>
-  <!-- Background overlay -->
+ 
   <div id="bg-overlay"></div>
 
-  <!-- Video nền -->
   <video id="bg-video" autoplay muted loop playsinline>
     <source src="vid.mp4" type="video/mp4">
   </video>
 
-  <!-- Text -->
-  <img id="text-img" src="text.png" alt="Design Text">
+  <div id="text-container">
+    <img id="text-img2" src="80NAM.png" alt="Design Text 2">
+    <img id="text-img" src="text.png" alt="Design Text">
+    
+  </div>
 
-  <!-- Canvas particle -->
   <canvas id="canvas"></canvas>
 
   <script>
@@ -122,7 +128,6 @@
       let drawWidth, drawHeight, drawX, drawY, moveSpeed;
 
       if (W >= 500) {
-        // --- DESKTOP ---
         drawWidth = W * 2;
         drawHeight = drawWidth / (img.width / img.height);
         if (drawHeight > H * 1.5) {
@@ -133,7 +138,6 @@
         drawY = (H - drawHeight) / 2 + 25; 
         moveSpeed = 0.05;
       } else {
-        // --- MOBILE ---
         drawWidth = W * 1.5;
         drawHeight = drawWidth / (img.width / img.height);
         if (drawHeight > H * 1.5) {
@@ -141,7 +145,7 @@
           drawWidth = drawHeight * (img.width / img.height);
         }
         drawX = (W - drawWidth) / 2;
-        drawY = H - drawHeight + 155; 
+        drawY = H - drawHeight + 400; 
         moveSpeed = 0.08; 
       }
 
